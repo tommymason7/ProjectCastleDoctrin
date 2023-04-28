@@ -104,7 +104,7 @@ Content/StarterContent/
 Content/UE5/
 
 # Ignore everything
-*
+#*
 
 # Keep all these files tracked
 !.gitignore
