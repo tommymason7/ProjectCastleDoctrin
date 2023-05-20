@@ -13,10 +13,16 @@ bool UBaseGun::Shoot(USceneComponent* gun, FVector fwdVector, AActor* actor)
 	UE_LOG(LogTemp, Warning, TEXT("Gun be shooting"));
 
 	// Get the end of the barrel
-	FVector loc = gun->GetSocketLocation(FName("BarrelEnd"));
+	FVector loc = gun->GetSocketLocation(muzzleFlashSocketName);
 
 	if (ammoInMag > 0)
 	{
+		// Play Muzzle Flash
+		UNiagaraFunctionLibrary::SpawnSystemAttached(NiagaraSystem, gun, muzzleFlashSocketName, FVector(0.f), FRotator(0.f), EAttachLocation::KeepRelativeOffset, true);
+
+		// Store off time last shot
+		TimeLastShot = GetWorld()->GetTimeSeconds();
+
 		ammoInMag--;
 
 		FVector endLoc = loc + fwdVector * lineTraceMultiplier;
@@ -59,6 +65,11 @@ bool UBaseGun::Shoot(USceneComponent* gun, FVector fwdVector, AActor* actor)
 	}
 
 	return false;
+}
+
+float UBaseGun::getTimeLastShot()
+{
+	return TimeLastShot;
 }
 
 float UBaseGun::getTimeInBetweenShots()
@@ -121,4 +132,14 @@ int UBaseGun::getAmmoInMag()
 int UBaseGun::getAmmoInReserve()
 {
 	return ammoInReserve;
+}
+
+class UClass* UBaseGun::getAnimBP()
+{
+	return animBP;
+}
+
+int UBaseGun::getMaxAmmoSize()
+{
+	return maxAmmoInReserve;
 }

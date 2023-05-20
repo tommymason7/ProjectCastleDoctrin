@@ -34,7 +34,6 @@ AProjectCastleDoctrinCharacter::AProjectCastleDoctrinCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-
 }
 
 void AProjectCastleDoctrinCharacter::BeginPlay()
@@ -222,10 +221,32 @@ void AProjectCastleDoctrinCharacter::Interact(const FInputActionValue& Value)
 			if (station)
 			{
 				ABoxSpawnedWeapon* weapon = station->getSpawnedWeapon();
+
 				if (weapon)
 				{
 					station->cancelGunTimer();
-					createGun(weapon->getGunData());
+
+					UBaseGun* foundGun = nullptr;
+
+					// Determine if we already have this gun
+					for (UBaseGun* gun : _guns)
+					{
+						if (gun->IsA(weapon->getGunData()))
+						{
+							foundGun = gun;
+							break;
+						}
+					}
+
+					if (foundGun)
+					{
+						foundGun->ammoReceived(weapon->getGunData()->GetDefaultObject<UBaseGun>()->getMaxAmmoSize());
+					}
+					else
+					{
+						createGun(weapon->getGunData());
+					}
+
 					station->destroySpawnedWeapon();
 				}
 			}
@@ -236,14 +257,19 @@ void AProjectCastleDoctrinCharacter::Interact(const FInputActionValue& Value)
 }
 
 void AProjectCastleDoctrinCharacter::ReloadWeapon(const FInputActionValue& Value)
-{
+{	
 	// Start reload timer
 	GetWorld()->GetTimerManager().SetTimer(_reloadTimer, _reloadDelegate, _gunInUse->getReloadTime(), false);
-	//_gunInUse->reload();
 }
 
 void AProjectCastleDoctrinCharacter::ChangeWeapon(const FInputActionValue& Value)
 {
+	if (GetWorld()->GetTimerManager().IsTimerActive(_reloadTimer))
+	{
+		// Cancel Timer
+		GetWorld()->GetTimerManager().ClearTimer(_reloadTimer);
+	}
+
 	int index = _guns.Find(_gunInUse);
 	int ogIndex = index;
 
@@ -324,7 +350,7 @@ void AProjectCastleDoctrinCharacter::Shoot(const FInputActionValue& Value)
 {
 	// Get Gun Component and call shoot
 	if (_gunInUse && _canShoot)
-	{
+	{	
 		// Pass in camera vector so that we can shoot at angles
 		//_gunInUse->Shoot(Mesh1P, GetActorForwardVector(), this);
 		if (_gunInUse->Shoot(Mesh1P, FirstPersonCameraComponent->GetForwardVector(), this))
@@ -408,6 +434,13 @@ void AProjectCastleDoctrinCharacter::updateGunMesh()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("gun mesh is valid"));
 		Mesh1P->SetSkeletalMesh(_gunInUse->getGunMesh());
+
+		// Update Mesh1P animation blueprint
+		if (_gunInUse->getAnimBP())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Gun animation blueprint is valid should be setting it"));
+			Mesh1P->SetAnimInstanceClass(_gunInUse->getAnimBP());
+		}
 	}
 	else
 	{

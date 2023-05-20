@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "Cockroach.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "Cockroach.h"
 
 #include "BaseGun.generated.h"
 
@@ -64,9 +67,22 @@ class PROJECTCASTLEDOCTRIN_API UBaseGun : public UObject
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int ammoInReserve = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	int maxAmmoInReserve = 0;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShootAction;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Particles, meta = (AllowPrivateAccess = "true"))
+	UNiagaraSystem* NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Particles, meta = (AllowPrivateAccess = "true"))
+	FName muzzleFlashSocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	class UClass* animBP;
+
+	float TimeLastShot = 0.0f;
 
 public:
 
@@ -104,4 +120,13 @@ public:
 
 	UFUNCTION()
 	int getAmmoInReserve();
+
+	UFUNCTION(BlueprintCallable)
+	float getTimeLastShot();
+
+	UFUNCTION()
+	class UClass* getAnimBP();
+
+	UFUNCTION()
+	int getMaxAmmoSize();
 };

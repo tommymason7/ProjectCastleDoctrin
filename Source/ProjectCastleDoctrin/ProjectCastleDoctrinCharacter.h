@@ -263,6 +263,7 @@ private:
 	uint32 shootBinding;
 
 	bool _canBeDamaged = true;
+
 	float _timeUntilDamageCanOccur = .75; // Seconds
 	float _timeUntilHealthRegen = 3.0; // Seconds
 	float _timeInBetweenRegen = .1; // Seconds
